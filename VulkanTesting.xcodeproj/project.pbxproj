@@ -17,14 +17,14 @@
 /* Begin PBXCopyFilesBuildPhase section */
 		E64F1D4728E9088300F05F6B /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 12;
+			buildActionMask = 8;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				E64F1D5928E90C2000F05F6B /* libglfw.3.3.dylib in CopyFiles */,
 				E64F1D5828E90C1B00F05F6B /* libvulkan.1.3.224.dylib in CopyFiles */,
+				E64F1D5928E90C2000F05F6B /* libglfw.3.3.dylib in CopyFiles */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
