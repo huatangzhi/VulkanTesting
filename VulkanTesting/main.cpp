@@ -55,9 +55,11 @@ private:
 
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
-    
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-
+    VkDevice device;
+    VkQueue graphicsQueue;
+    
+    
     void initWindow() {
         glfwInit();
 
@@ -71,6 +73,38 @@ private:
         createInstance();
         setupDebugMessenger();
         pickPhysicalDevice();
+        createLogicDevice();
+    }
+    
+    void createLogicDevice() {
+        QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+        queueCreateInfo.queueCount = 1;
+        float queuePriority = 1.0f;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+        const char* deviceExtension = "VK_KHR_portability_subset";
+        VkPhysicalDeviceFeatures deviceFeatures{};
+        VkDeviceCreateInfo createInfo{};
+        createInfo.ppEnabledExtensionNames = &deviceExtension;
+        createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        createInfo.pQueueCreateInfos = &queueCreateInfo;
+        createInfo.queueCreateInfoCount = 1;
+        createInfo.pEnabledFeatures = &deviceFeatures;
+        createInfo.enabledExtensionCount = 1;
+        
+        if (enableValidationLayers) {
+            createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+            createInfo.ppEnabledLayerNames = validationLayers.data();
+        } else {
+            createInfo.enabledLayerCount = 0;
+        }
+        
+        if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create logical device!");
+        }
+        vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
     }
     
     void pickPhysicalDevice() {
@@ -123,6 +157,7 @@ private:
     }
 
     void cleanup() {
+        vkDestroyDevice(device, nullptr);
         if (enableValidationLayers) {
             DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
         }
@@ -146,7 +181,6 @@ private:
         appInfo.pEngineName = "No Engine";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.apiVersion = VK_API_VERSION_1_0;
-
         VkInstanceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
@@ -204,6 +238,7 @@ private:
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         }
         extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+        extensions.push_back("VK_KHR_get_physical_device_properties2");
 
         return extensions;
     }
